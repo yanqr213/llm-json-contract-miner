@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": ["id", "status", "score", "answer"],
+  "properties": {
+    "id": {"type": "string"},
+    "status": {"type": "string", "enum": ["ok", "needs_review"]},
+    "score": {"type": "number"},
+    "answer": {
+      "type": "object",
+      "required": ["summary", "citations"],
+      "properties": {
+        "summary": {"type": ["string", "null"]},
+        "citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {"type": "string"},
+              "line": {"type": "integer"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

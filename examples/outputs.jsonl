@@ -1,0 +1,5 @@
+{"id":"case-001","status":"ok","score":0.92,"tags":["billing","refund"],"answer":{"summary":"Refund was approved","citations":[{"source":"policy.md","line":12}]},"tool_calls":[{"name":"search","success":true}]}
+{"id":"case-002","status":"ok","score":0.88,"tags":["billing"],"answer":{"summary":"Invoice is payable","citations":[{"source":"invoice.md","line":3}]},"tool_calls":[{"name":"calculator","success":true}]}
+{"id":"case-003","status":"needs_review","score":0.54,"tags":[],"answer":{"summary":null,"citations":[]},"tool_calls":[{"name":"search","success":false,"error":"not_found"}]}
+{"id":"case-004","status":"ok","score":0.95,"tags":["support"],"answer":{"summary":"Ticket can be closed","citations":[{"source":"ticket.md","line":8}]},"tool_calls":[]}
+
