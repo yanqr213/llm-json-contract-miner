@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("inputs", nargs="*", help="JSON or JSONL model output files")
     parser.add_argument("--expected", help="expected JSON Schema / contract JSON")
     parser.add_argument("--out", default="reports", help="output directory")
-    parser.add_argument("--formats", default="markdown,json,junit,schema", help="comma-separated: markdown,json,junit,schema,csv,all")
+    parser.add_argument("--formats", default="markdown,json,junit,schema", help="comma-separated: markdown,json,junit,schema,csv,fix-plan,all")
     parser.add_argument("--enum-limit", type=int, default=20)
     parser.add_argument("--required-ratio", type=float, default=1.0)
     parser.add_argument("--fail-score", type=int, default=70, help="fail when risk score is at or above this value")
@@ -61,9 +61,8 @@ def main(argv: List[str] = None) -> int:
 
 def parse_formats(value: str) -> List[str]:
     result = [item.strip().lower() for item in value.split(",") if item.strip()]
-    allowed = {"markdown", "md", "json", "junit", "schema", "csv", "all"}
+    allowed = {"markdown", "md", "json", "junit", "schema", "csv", "fix-plan", "fix_plan", "all"}
     unknown = [item for item in result if item not in allowed]
     if unknown:
         raise ValueError(f"unknown report format(s): {', '.join(unknown)}")
     return result or ["markdown", "json", "junit", "schema"]
-

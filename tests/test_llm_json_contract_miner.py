@@ -15,7 +15,7 @@ from llm_json_contract_miner.cli import main, parse_formats
 from llm_json_contract_miner.contract import compare_expected_contract, flatten_schema, normalize_schema_type
 from llm_json_contract_miner.io import read_json, read_json_object, read_jsonl, read_samples
 from llm_json_contract_miner.models import DriftFinding, FieldStats
-from llm_json_contract_miner.reports import render_csv, render_junit, render_markdown, write_reports
+from llm_json_contract_miner.reports import render_csv, render_fix_plan, render_junit, render_markdown, write_reports
 from llm_json_contract_miner.schema import build_schema, direct_children, enum_candidates, required_children, schema_for_path
 
 
@@ -318,10 +318,19 @@ class ReportTests(TempProject):
     def test_junit_has_testsuite(self):
         self.assertIn("testsuite", render_junit(self.report))
 
+    def test_fix_plan_contains_agent_prompt(self):
+        expected = {"properties": {"id": {"type": "integer"}}}
+        report = analyze_samples(samples(), expected)
+        text = render_fix_plan(report)
+        self.assertIn("LLM JSON Contract Fix Plan", text)
+        self.assertIn("Prompt Or Decoder Repairs", text)
+        self.assertIn("Agent Repair Prompt", text)
+
     def test_write_reports_all(self):
         outputs = write_reports(self.report, self.root / "reports", ["all", "csv"])
         self.assertTrue((self.root / "reports" / "contract-report.json").exists())
         self.assertTrue((self.root / "reports" / "schema.draft.json").exists())
+        self.assertTrue((self.root / "reports" / "contract-fix-plan.md").exists())
 
     def test_write_reports_selected(self):
         outputs = write_reports(self.report, self.root / "reports", ["csv"])
@@ -352,9 +361,10 @@ class CliTests(TempProject):
 
     def test_main_writes_reports(self):
         path = self.make_input()
-        code = main([str(path), "--out", str(self.root / "reports"), "--formats", "json,markdown,junit,schema,csv", "--no-fail"])
+        code = main([str(path), "--out", str(self.root / "reports"), "--formats", "json,markdown,junit,schema,csv,fix-plan", "--no-fail"])
         self.assertEqual(code, 0)
         self.assertTrue((self.root / "reports" / "fields.csv").exists())
+        self.assertTrue((self.root / "reports" / "contract-fix-plan.md").exists())
 
     def test_main_expected_mismatch_fails(self):
         path = self.make_input()

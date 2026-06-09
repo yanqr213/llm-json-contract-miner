@@ -1,6 +1,6 @@
 # llm-json-contract-miner
 
-llm-json-contract-miner 是一个离线 LLM JSON 输出契约挖掘工具。它读取多次模型结构化输出的 JSON/JSONL 文件，统计实际字段路径、类型分布、缺失率、null 比例、枚举候选、异常样本，并与期望 contract / JSON Schema 做 drift 对比，输出 JSON Schema 草案、Markdown、JSON、CSV、JUnit 报告和 CI gate 退出码。
+llm-json-contract-miner 是一个离线 LLM JSON 输出契约挖掘工具。它读取多次模型结构化输出的 JSON/JSONL 文件，统计实际字段路径、类型分布、缺失率、null 比例、枚举候选、异常样本，并与期望 contract / JSON Schema 做 drift 对比，输出 JSON Schema 草案、Markdown、JSON、CSV、JUnit、修复计划报告和 CI gate 退出码。
 
 它适合依赖 LLM JSON 输出的应用团队、eval 维护者、agent 工程团队和 CI 流水线，用来回答：
 
@@ -40,7 +40,7 @@ PYTHONPATH=src python -m llm_json_contract_miner examples/outputs.jsonl --no-fai
 llm-json-contract-miner examples/outputs.jsonl \
   --expected examples/expected.schema.json \
   --out reports \
-  --formats markdown,json,junit,schema,csv
+  --formats markdown,json,junit,schema,csv,fix-plan
 ```
 
 生成文件：
@@ -50,6 +50,7 @@ llm-json-contract-miner examples/outputs.jsonl \
 - `reports/schema.draft.json`：从实际样本推断的 JSON Schema 草案。
 - `reports/junit.xml`：CI 可消费的失败项。
 - `reports/fields.csv`：字段路径表，适合表格审阅。
+- `reports/contract-fix-plan.md`：面向 maintainer / coding agent 的修复计划。
 
 ## CLI
 
@@ -61,7 +62,7 @@ llm-json-contract-miner INPUT.jsonl [more.json more.jsonl] [options]
 
 - `--expected path`：期望 contract / JSON Schema 文件。
 - `--out reports`：报告输出目录。
-- `--formats markdown,json,junit,schema,csv`：输出格式。
+- `--formats markdown,json,junit,schema,csv,fix-plan`：输出格式。
 - `--enum-limit 20`：字段枚举候选的最大不同值数量。
 - `--required-ratio 1.0`：判断 required 的样本出现比例。
 - `--fail-score 70`：风险分数达到阈值时返回退出码 1。
@@ -138,6 +139,7 @@ GitHub Actions 示例：
 - 让 coding agent 在修改 structured output prompt 后运行本工具。
 - 把 `contract-report.md` 粘到 PR 描述，方便 reviewer 快速看 drift。
 - 把 `contract-report.json` 作为后续 agent 修复任务输入。
+- 把 `contract-fix-plan.md` 作为修复工单：它会把问题分成 schema 更新、prompt/decoder 修复、样本清洗和人工 review，并附可复制的 agent repair prompt。
 - 只把 `schema.draft.json` 当作草案，不要绕过人工 review 自动覆盖正式 contract。
 
 ## 限制
@@ -172,6 +174,7 @@ It produces:
 - JSON reports for agents and automation.
 - CSV field inventories.
 - JUnit XML for CI gates.
+- A contract fix plan for maintainers and coding agents.
 
 The project uses only the Python standard library and supports Python 3.9+.
 
@@ -201,7 +204,7 @@ PYTHONPATH=src python -m llm_json_contract_miner examples/outputs.jsonl --no-fai
 llm-json-contract-miner examples/outputs.jsonl \
   --expected examples/expected.schema.json \
   --out reports \
-  --formats markdown,json,junit,schema,csv
+  --formats markdown,json,junit,schema,csv,fix-plan
 ```
 
 Options:
@@ -238,7 +241,10 @@ Nested arrays are represented with `[]` in paths, such as `$.tool_calls[].name`.
 
 The command exits with status 1 when the risk score reaches `--fail-score` or an error-level drift finding is present. Use `--no-fail` for exploration or report-only pipelines.
 
+### Fix Plan
+
+`contract-fix-plan.md` turns drift evidence into a reviewable work order. It groups findings into schema updates, prompt/decoder repairs, sample hygiene, and human review, then includes a copyable agent repair prompt. Use it as the handoff artifact after prompt, model, parser, or tool-output changes.
+
 ### Limitations
 
 This tool does not call an LLM, judge semantic answer quality, or guarantee that the inferred schema is product-ready. Treat generated schemas as review drafts.
-
